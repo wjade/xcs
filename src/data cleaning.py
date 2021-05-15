@@ -115,7 +115,7 @@ for_cluster = Train[['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"]]
 #plt.show()
 
 #turned out clusters is the best, therefore the model below --
-k = 10
+k = 600
 kmeanModel = KMeans(n_clusters = k).fit(for_cluster)
 
 #predict the cluster on dev and test
