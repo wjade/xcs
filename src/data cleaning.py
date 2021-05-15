@@ -100,19 +100,19 @@ Train, Test = train_test_split(Train, test_size=0.25, random_state=1) # 0.25 x 0
 for_cluster = Train[['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"]]
 
 #do not run the code commented out below, will take long
-distortions = []
-K = range(50,300, 50)
-for k in K:
-    kmeanModel = KMeans(n_clusters=k).fit(for_cluster)
-    kmeanModel.fit(for_cluster)
-    distortions.append(sum(np.min(cdist(for_cluster, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / for_cluster.shape[0])
+#distortions = []
+#K = range(50,300, 50)
+#for k in K:
+#    kmeanModel = KMeans(n_clusters=k).fit(for_cluster)
+#    kmeanModel.fit(for_cluster)
+#    distortions.append(sum(np.min(cdist(for_cluster, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / for_cluster.shape[0])
 
 # Plot the elbow
-plt.plot(K, distortions, 'bx-')
-plt.xlabel('k')
-plt.ylabel('Distortion')
-plt.title('The Elbow Method showing the optimal k')
-plt.show()
+#plt.plot(K, distortions, 'bx-')
+#plt.xlabel('k')
+#plt.ylabel('Distortion')
+#plt.title('The Elbow Method showing the optimal k')
+#plt.show()
 
 #turned out clusters is the best, therefore the model below --
 k = 10
