@@ -27,7 +27,7 @@ mydata = mydata[['Claim Identifier'
                  , 'Claim Type', 'District Name', 'Average Weekly Wage', 'Claim Injury Type', 'Age at Injury'
                  , 'Accident Date', 'Controverted Date', 'PPD Scheduled Loss Date', 'PPD Non-Scheduled Loss Date', 'First Appeal Date'
                  , 'WCIO Part Of Body Code', 'WCIO Nature of Injury Code', 'WCIO Cause of Injury Code', 'Alternative Dispute Resolution', 'Gender', 'Birth Year'
-                 , 'Zip Code', 'Medical Fee Region', 'First Hearing Date', 'Closed Count', 'Attorney/Representative'
+                 , 'Medical Fee Region', 'First Hearing Date', 'Closed Count', 'Attorney/Representative'
                  , 'Carrier Type', 'Accident', 'Occupational Disease', 'County of Injury']]
 
 
@@ -36,7 +36,7 @@ mydata.columns = ["Claim_Number", "Claim_Type", "District_Name", "Average_Weekly
                                            , "PPD_Non-Scheduled_Loss_Date", "First_Appeal_Date"
                                            , "WCIO_Part", "WCIO_Nature", "WCIO_Cause"
                                            , "Alternative_Dispute_Res", "Gender", "Birth_Year"
-                                           , "Zipcode", "Med_Fee_Region", "First_Hearing_Date", "Closed_Count"
+                                           , "Med_Fee_Region", "First_Hearing_Date", "Closed_Count"
                                            , "Target", "Carrier_Type", "Workplace_Accident", "Occupational_Disease", "County_Injury"]
 
 mydata.dtypes
@@ -91,6 +91,23 @@ data_cleaned['Days_btw_1stHearing_Accident'] = data_cleaned['First_Hearing_Date'
 #drop un-needed variables
 data_cleaned = data_cleaned.drop(['Accident_Date', 'Controverted_Date', 'PPD_Scheduled_Loss_Date', 'PPD_Non-Scheduled_Loss_Date', 'First_Appeal_Date', 'First_Hearing_Date'], axis = 1)
 
+#clean the difference between dates variable
+data_cleaned['Days_btw_Controverted_Accident'] = data_cleaned['Days_btw_Controverted_Accident']/ np.timedelta64(1, 'D')
+data_cleaned['Days_btw_PPD_Scheduled_Accident'] = data_cleaned['Days_btw_PPD_Scheduled_Accident']/ np.timedelta64(1, 'D')
+data_cleaned['Days_btw_PPD_Non_Scheduled_Accident'] = data_cleaned['Days_btw_PPD_Non_Scheduled_Accident']/ np.timedelta64(1, 'D')
+data_cleaned['Days_btw_1stAppeal_Accident'] = data_cleaned['Days_btw_1stAppeal_Accident']/ np.timedelta64(1, 'D')
+data_cleaned['Days_btw_1stHearing_Accident'] = data_cleaned['Days_btw_1stHearing_Accident']/ np.timedelta64(1, 'D')
+
+
+data_cleaned['Days_btw_Controverted_Accident'] = data_cleaned['Days_btw_Controverted_Accident'].astype(float)
+data_cleaned['Days_btw_PPD_Scheduled_Accident'] = data_cleaned['Days_btw_PPD_Scheduled_Accident'].astype(float)
+data_cleaned['Days_btw_PPD_Non_Scheduled_Accident'] = data_cleaned['Days_btw_PPD_Non_Scheduled_Accident'].astype(float)
+data_cleaned['Days_btw_1stAppeal_Accident'] = data_cleaned['Days_btw_1stAppeal_Accident'].astype(float)
+data_cleaned['Days_btw_1stHearing_Accident'] = data_cleaned['Days_btw_1stHearing_Accident'].astype(float)
+
+#convert categorical variables to dummy variables
+data_cleaned = pd.get_dummies(data_cleaned, columns=['Claim_Type', 'District_Name', 'Injury_Type', 'Alternative_Dispute_Res','Gender', 'Med_Fee_Region', 'Carrier_Type', 'Workplace_Accident', 'Occupational_Disease', 'County_Injury'])
+
 #train-dev-test split
 Train, Dev = train_test_split(data_cleaned, test_size=0.2, random_state=1)
 Train, Test = train_test_split(Train, test_size=0.25, random_state=1) # 0.25 x 0.8 = 0.2
@@ -101,11 +118,11 @@ for_cluster = Train[['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"]]
 
 #do not run the code commented out below, will take long
 #distortions = []
-#K = range(50,300, 50)
+#K = range(50, 1000, 50)
 #for k in K:
-#    kmeanModel = KMeans(n_clusters=k).fit(for_cluster)
-#    kmeanModel.fit(for_cluster)
-#    distortions.append(sum(np.min(cdist(for_cluster, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / for_cluster.shape[0])
+ #   kmeanModel = KMeans(n_clusters=k).fit(for_cluster)
+ #   kmeanModel.fit(for_cluster)
+ #   distortions.append(sum(np.min(cdist(for_cluster, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / for_cluster.shape[0])
 
 # Plot the elbow
 #plt.plot(K, distortions, 'bx-')
@@ -128,5 +145,5 @@ Dev['Cluster'] = Dev_kmeans
 Test['Cluster'] = Test_kmeans
 
 Train = Train.drop(['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"], axis = 1)
-Dec = Dev.drop(['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"], axis = 1)
+Dev = Dev.drop(['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"], axis = 1)
 Test = Test.drop(['WCIO_Part', 'WCIO_Nature', "WCIO_Cause"], axis = 1)
