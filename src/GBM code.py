@@ -120,6 +120,21 @@ max_value = grid_search[grid_search[:,7]==grid_search[:,7].max()]
 #parameter tuning using Q-learning
 #consider the model to have 64 states, each state is a combination of the parameters.
 
+num_actions = 2**num_parameter #each parameter has the option of increase 10% or decrease 10%(or increase 1 or descrease 1)
+
+##num_states = ??? how to define num of states?
+
+#parameters that stricten regulation if increased
+#gamma
+#min_child_weight
+
+#parameters that ease regulation if decreased
+#colsample_by_tree = col_sample
+#subsample = row_sample
+#learning_rate = eta
+#max_depth = d
+
+
 def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
 	"""
 	Creates an epsilon-greedy policy based
@@ -140,6 +155,22 @@ def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
 		return Action_probabilities
 
 	return policyFunction
+
+
+#define boundaries for the parameters, need to include in the code below that once boundary is reached, the MDP terminates 
+min_col_sample = 0.5
+max_col_sample = 1
+min_row_sample = 0.5
+max_row_sample = 1
+min_g = 0
+max_g = 15
+min_eta = 0.1
+max_eta = 0.5
+min_d = 3
+max_d = 7
+min_c = 1
+max_c = 3
+
 
 
 def qLearning(env, num_episodes, discount_factor = 1.0, alpha = 0.6, epsilon = 0.1):
