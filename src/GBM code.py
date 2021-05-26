@@ -140,7 +140,7 @@ max_d = 7
 min_c = 1
 max_c = 3
 
-num_actions = 2**num_parameter #each parameter has the option of increase or decrease 0.1(or 1 or 5)
+num_actions = 2*num_parameter #each parameter has the option of increase or decrease 0.1(or 1 or 5)
 
 num_states = (len(np.arange(0.5, 1.1, 0.1)) #number of options for col_sample
 * len(np.arange(0.5, 1.1, 0.1)) #number of options for row_sample
@@ -164,7 +164,7 @@ def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
                                         #each action has the same probability of epsilon/num_actions
 		Action_probabilities = np.ones(num_actions, dtype = float) * epsilon / num_actions
 				
-		best_action = np.argmax(Q[state])
+		best_action = np.argmax(Q[state]) #state is the key of the dictionary
 		Action_probabilities[best_action] += (1.0 - epsilon)
 		return Action_probabilities
 
@@ -188,7 +188,7 @@ def simulate(state_tuple):
 
     if action == 1:
         col_sample = max((col_sample - 0.1), min_col_sample)
-       elif action == 2:
+        elif action == 2:
            col_sample = min((col_sample + 0.1), max_col_sample)
           elif action == 3:
              row_sample = max((row_cample - 0.1), min_col_sample)
@@ -235,43 +235,45 @@ def qLearning(state_tuple, num_episodes, discount_factor = 0.9, alpha = 0.6, eps
 
 		for t in itertools.count():
 
-                                                            #run earlier functions to find actions to take and updated state
-                                                            updated_state = simulate(state_tuple)
-                                                            
-                                                            col_sample, row_sample, g, eta, d, c = updated_state
+            #run earlier functions to find actions to take and updated state
+            updated_state = simulate(state_tuple)
+            
+            col_sample, row_sample, g, eta, d, c = updated_state
 
 			# take action
 			model_RL = XGBClassifier(base_score=0.5
 
-                                                                                                          , colsample_by_tree = col_sample
-                                                                                                          , subsample = row_sample
-                                                                                                          , gamma = g
-                                                                                                          , learning_rate = eta
-                                                                                                          , max_depth = d
-                                                                                                          , min_child_weight = c
-                                                                                                          
-                                                                                                          , missing=None
-                                                                                                          , n_estimators=100
-                                                                                                          , nthread=-1
-                                                                                                          , max_delta_step=0
-                                                                                                          , objective='binary:logistic'
-                                                                                                          , reg_alpha=0
-                                                                                                          , reg_lambda=1
-                                                                                                          , scale_pos_weight=1
-                                                                                                          , seed=42
-                                                                                                          , silent=True)
+                                , colsample_by_tree = col_sample
+                                , subsample = row_sample
+                                , gamma = g
+                                , learning_rate = eta
+                                , max_depth = d
+                                , min_child_weight = c
+                                
+                                , missing=None
+                                , n_estimators=100
+                                , nthread=-1
+                                , max_delta_step=0
+                                , objective='binary:logistic'
+                                , reg_alpha=0
+                                , reg_lambda=1
+                                , scale_pos_weight=1
+                                , seed=42
+                                , silent=True)
 
 
-                                                            model_RL.fit(X_train, Y_train)
-
-                                                            dev_pred = model_RL.predict(X_dev)
-                                                            dev_accuracy = accuracy_score(Y_dev, dev_pred)
+            model_RL.fit(X_train, Y_train)
+    
+            dev_pred = model_RL.predict(X_dev)
+            dev_accuracy = accuracy_score(Y_dev, dev_pred)
 
                                                             #calculate reward corresponding to the action
 			reward = dev_accuracy - 0.9578 #dev accuracy of tuned model - dev accuracy of baseline model
 
+			#experiment new_reward - old_reward
+
 			#record new state
-			next_state = [col_sample, row_sample, g, eta, d, c]
+			#next_state = [col_sample, row_sample, g, eta, d, c]
 
 			# Update statistics
 			stats.episode_rewards[ith_episode] += reward
