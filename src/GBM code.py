@@ -5,6 +5,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import xgboost
 from xgboost import XGBClassifier
+import math
+import collections
+from collections import namedtuple
 
 #executing data cleaning code
 #exec(open("/Users/yejiang/Desktop/Stanford ML class/project/code/data cleaning.py").read())
@@ -117,23 +120,34 @@ max_value = grid_search[grid_search[:,7]==grid_search[:,7].max()]
 #grid search's result is slightly better than baseline, imporved from 0.9578 to 0.9585
 #comparing the parameters, the baseline model appears to be overfitting(parameters are telling the same story)
 
-#parameter tuning using Q-learning
-#consider the model to have 64 states, each state is a combination of the parameters.
 
-num_actions = 2**num_parameter #each parameter has the option of increase 10% or decrease 10%(or increase 1 or descrease 1)
 
-##num_states = ??? how to define num of states?
 
-#parameters that stricten regulation if increased
-#gamma
-#min_child_weight
 
-#parameters that ease regulation if decreased
-#colsample_by_tree = col_sample
-#subsample = row_sample
-#learning_rate = eta
-#max_depth = d
+###parameter tuning using Q-learning
 
+#define boundaries for the parameters, need to include in the code below that once boundary is reached, the MDP terminates 
+min_col_sample = 0.5
+max_col_sample = 1
+min_row_sample = 0.5
+max_row_sample = 1
+min_g = 0
+max_g = 10
+min_eta = 0.1
+max_eta = 0.5
+min_d = 3
+max_d = 7
+min_c = 1
+max_c = 3
+
+num_actions = 2**num_parameter #each parameter has the option of increase or decrease 0.1(or 1 or 5)
+
+num_states = (len(np.arange(0.5, 1.1, 0.1)) #number of options for col_sample
+* len(np.arange(0.5, 1.1, 0.1)) #number of options for row_sample
+* len((0, 5, 10)) #number of options for gamma
+* len(np.arange(0.1, 0.6, 0.1)) #number of options for eta
+* len(np.arange(3,8,1)) #number of options for max_depth
+* len(np.arange(1,4,1))) #number of options for min_childweighht
 
 def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
 	"""
@@ -156,62 +170,108 @@ def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
 
 	return policyFunction
 
+#create dictionary for state space
 
-#define boundaries for the parameters, need to include in the code below that once boundary is reached, the MDP terminates 
-min_col_sample = 0.5
-max_col_sample = 1
-min_row_sample = 0.5
-max_row_sample = 1
-min_g = 0
-max_g = 15
-min_eta = 0.1
-max_eta = 0.5
-min_d = 3
-max_d = 7
-min_c = 1
-max_c = 3
+def simulate(state_tuple):
 
+    """purpose of this function: for a given state, find the best action, calculate the reward of the given state and action combination, and output the outcome state as a tuple """
+    
+    col_sample, row_sample, g, eta, d, c = state_tuple
 
+    policy = createEpsilonGreedyPolicy(Q, epsilon, num_actions)
 
-def qLearning(env, num_episodes, discount_factor = 1.0, alpha = 0.6, epsilon = 0.1):
-	"""
-	Q-Learning algorithm: Off-policy TD control.
-	Finds the optimal greedy policy while improving
-	following an epsilon-greedy policy"""
-	
-	# Action value function
-	# A nested dictionary that maps
-	# state -> (action -> action-value).
-	Q = defaultdict(lambda: np.zeros(env.action_space.n))
+    # get probabilities of all actions from current state
+    action_probabilities = policy(state)
 
-	# Keeps track of useful statistics
-	stats = plotting.EpisodeStats(
-		episode_lengths = np.zeros(num_episodes),
-		episode_rewards = np.zeros(num_episodes))	
-	
-	# Create an epsilon greedy policy function
-	# appropriately for environment action space
-	policy = createEpsilonGreedyPolicy(Q, epsilon, env.action_space.n)
-	
-	# For every episode
-	for ith_episode in range(num_episodes):
-		
-		# Reset the environment and pick the first action
-		state = env.reset()
-		
-		for t in itertools.count():
+    # choose action according to the probability distribution
+    action = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
+
+    if action == 1:
+        col_sample = max((col_sample - 0.1), min_col_sample)
+       elif action == 2:
+           col_sample = min((col_sample + 0.1), max_col_sample)
+          elif action == 3:
+             row_sample = max((row_cample - 0.1), min_col_sample)
+             elif action == 4:
+                row_sample = min((row_sample + 0.1), max_row_sample)
+               elif action == 5:
+                    g = max((g-5), min_g)
+                   elif action == 6 :
+                       g = min((g + 5), max_g)
+                           elif action == 7:
+                             eta = max((eta - 0.1), min_eta)
+                              elif action == 8:
+                                 eta = min((eta + 0.1), max_eta)
+                                 elif action == 9 :
+                                     d = max((d-1), min_d)
+                                       elif action == 10:
+                                          d = min((d + 1), max_d)
+                                         elif action == 11:
+                                              c = max((c-1), min_c)
+                                              elif action == 12:
+                                                   c = min((c + 1), max_c)
+
+    updated_state = (col_sample, row_sample, g, eta, d, c)
+
+    return updated_state
+
 			
-			# get probabilities of all actions from current state
-			action_probabilities = policy(state)
+def qLearning(state_tuple, num_episodes, discount_factor = 0.9, alpha = 0.6, epsilon = 0.1):
 
-			# choose action according to
-			# the probability distribution
-			action = np.random.choice(np.arange(
-					len(action_probabilities)),
-					p = action_probabilities)
+                    EpisodeStats = namedtuple("Stats",["episode_lengths", "episode_rewards"])
+                   
+                    # Keeps track of useful statistics
+                    stats = EpisodeStats(episode_lengths = np.zeros(num_episodes), episode_rewards = np.zeros(num_episodes))
 
-			# take action and get reward, transit to next state
-			next_state, reward, done, _ = env.step(action)
+                    # Action value function
+                    # A nested dictionary that maps
+                    # state -> (action -> action-value).
+                    Q = collections.defaultdict(lambda: np.zeros(num_actions))
+
+	# For every episode -- eposide is all states that come in between an initial state and a terminal state
+	for ith_episode in range(num_episodes):
+
+                                        state_tuple = #initialize
+
+		for t in itertools.count():
+
+                                                            #run earlier functions to find actions to take and updated state
+                                                            updated_state = simulate(state_tuple)
+                                                            
+                                                            col_sample, row_sample, g, eta, d, c = updated_state
+
+			# take action
+			model_RL = XGBClassifier(base_score=0.5
+
+                                                                                                          , colsample_by_tree = col_sample
+                                                                                                          , subsample = row_sample
+                                                                                                          , gamma = g
+                                                                                                          , learning_rate = eta
+                                                                                                          , max_depth = d
+                                                                                                          , min_child_weight = c
+                                                                                                          
+                                                                                                          , missing=None
+                                                                                                          , n_estimators=100
+                                                                                                          , nthread=-1
+                                                                                                          , max_delta_step=0
+                                                                                                          , objective='binary:logistic'
+                                                                                                          , reg_alpha=0
+                                                                                                          , reg_lambda=1
+                                                                                                          , scale_pos_weight=1
+                                                                                                          , seed=42
+                                                                                                          , silent=True)
+
+
+                                                            model_RL.fit(X_train, Y_train)
+
+                                                            dev_pred = model_RL.predict(X_dev)
+                                                            dev_accuracy = accuracy_score(Y_dev, dev_pred)
+
+                                                            #calculate reward corresponding to the action
+			reward = dev_accuracy - 0.9578 #dev accuracy of tuned model - dev accuracy of baseline model
+
+			#record new state
+			next_state = [col_sample, row_sample, g, eta, d, c]
 
 			# Update statistics
 			stats.episode_rewards[ith_episode] += reward
