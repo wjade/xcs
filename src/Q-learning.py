@@ -98,29 +98,29 @@ def qLearning(initial_state, num_episodes, discount_factor, alpha, epsilon):
                     action = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
 
                     if action == 1:
-                        col_sample = max((col_sample - 0.1), min_col_sample)
+                        col_sample = (col_sample - 0.1)
                     elif action == 2:
-                        col_sample = min((col_sample + 0.1), max_col_sample)
+                        col_sample = (col_sample + 0.1)
                     elif action == 3:
-                        row_sample = max((row_sample - 0.1), min_col_sample)
+                        row_sample = (row_sample - 0.1)
                     elif action == 4:
-                        row_sample = min((row_sample + 0.1), max_row_sample)
+                        row_sample = (row_sample + 0.1)
                     elif action == 5:
-                        g = max((g-5), min_g)
+                        g = (g-5)
                     elif action == 6 :
-                        g = min((g + 5), max_g)
+                        g = (g + 5)
                     elif action == 7:
-                        eta = max((eta - 0.1), min_eta)
+                        eta = (eta - 0.1)
                     elif action == 8:
-                        eta = min((eta + 0.1), max_eta)
+                        eta = (eta + 0.1)
                     elif action == 9 :
-                        d = max((d-1), min_d)
+                        d = (d-1)
                     elif action == 10:
-                        d = min((d + 1), max_d)
+                        d = (d + 1)
                     elif action == 11:
-                        c = max((c-1), min_c)
+                        c = (c-1)
                     elif action == 12:
-                        c = min((c + 1), max_c)
+                        c = (c + 1)
 
                     if (col_sample > max_col_sample or col_sample < min_col_sample
                             or row_sample > max_row_sample or row_sample < min_row_sample
