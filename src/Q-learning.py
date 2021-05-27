@@ -9,9 +9,7 @@ import collections
 from collections import namedtuple
 
 #executing data cleaning code
-#exec(open("/Users/yejiang/Desktop/Stanford ML class/project/code/data cleaning.py").read())
-
-
+exec(open("/Users/yejiang/Desktop/Stanford ML class/project/code/data cleaning.py").read())
 
 ###parameter tuning using Q-learning
 
@@ -61,53 +59,10 @@ def createEpsilonGreedyPolicy(Q, epsilon, num_actions):
 
 	return policyFunction
 
-#create dictionary for state space
-
-def simulate(state_tuple):
-
-    col_sample, row_sample, g, eta, d, c = state_tuple
-
-    policy = createEpsilonGreedyPolicy(Q, epsilon, num_actions)
-
-    # get probabilities of all actions from current state
-    action_probabilities = policy(state_tuple)
-
-    # choose action according to the probability distribution
-    action = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
-
-    if action == 1:
-        col_sample = max((col_sample - 0.1), min_col_sample)
-    elif action == 2:
-        col_sample = min((col_sample + 0.1), max_col_sample)
-    elif action == 3:
-        row_sample = max((row_sample - 0.1), min_col_sample)
-    elif action == 4:
-        row_sample = min((row_sample + 0.1), max_row_sample)
-    elif action == 5:
-        g = max((g-5), min_g)
-    elif action == 6 :
-        g = min((g + 5), max_g)
-    elif action == 7:
-        eta = max((eta - 0.1), min_eta)
-    elif action == 8:
-        eta = min((eta + 0.1), max_eta)
-    elif action == 9 :
-        d = max((d-1), min_d)
-    elif action == 10:
-        d = min((d + 1), max_d)
-    elif action == 11:
-        c = max((c-1), min_c)
-    elif action == 12:
-        c = min((c + 1), max_c)
-
-    updated_state = (col_sample, row_sample, g, eta, d, c)
-
-    return updated_state, action
-
 
 initial_state = (1, 0.9, 0, 0.3, 6, 1)
 		
-def qLearning(initial_state, num_episodes, discount_factor = 0.9, alpha = 0.6, epsilon = 0.1):
+def qLearning(initial_state, num_episodes, discount_factor, alpha, epsilon):
 
             EpisodeStats = namedtuple("Stats",["episode_lengths", "episode_rewards"])
 
@@ -119,20 +74,67 @@ def qLearning(initial_state, num_episodes, discount_factor = 0.9, alpha = 0.6, e
             # state -> (action -> action-value).
             Q = collections.defaultdict(lambda: np.zeros(num_actions))
 
+            policy = createEpsilonGreedyPolicy(Q, epsilon, num_actions)
+
             # For every episode -- eposide is all states that come in between an initial state and a terminal state
             for ith_episode in range(num_episodes):
-                state_tuple = initial_state
 
-                for t in itertools.count():
+                if ith_episode > 0:
+                    state_tuple = next_state
+                else:
+                    state_tuple = initial_state
+
+                #for t in itertools.count():
+                for t in range(0, 100):
 
                     print(t)
-                    #run earlier functions to find actions to take and updated state
-                    updated_state, action = simulate(state_tuple)
-            
-                    col_sample, row_sample, g, eta, d, c = updated_state
 
-                    # take action
-                    model_RL = XGBClassifier(base_score=0.5
+                    col_sample, row_sample, g, eta, d, c = state_tuple
+
+                    # get probabilities of all actions from current state
+                    action_probabilities = policy(state_tuple)
+
+                    # choose action according to the probability distribution
+                    action = np.random.choice(np.arange(len(action_probabilities)), p = action_probabilities)
+
+                    if action == 1:
+                        col_sample = max((col_sample - 0.1), min_col_sample)
+                    elif action == 2:
+                        col_sample = min((col_sample + 0.1), max_col_sample)
+                    elif action == 3:
+                        row_sample = max((row_sample - 0.1), min_col_sample)
+                    elif action == 4:
+                        row_sample = min((row_sample + 0.1), max_row_sample)
+                    elif action == 5:
+                        g = max((g-5), min_g)
+                    elif action == 6 :
+                        g = min((g + 5), max_g)
+                    elif action == 7:
+                        eta = max((eta - 0.1), min_eta)
+                    elif action == 8:
+                        eta = min((eta + 0.1), max_eta)
+                    elif action == 9 :
+                        d = max((d-1), min_d)
+                    elif action == 10:
+                        d = min((d + 1), max_d)
+                    elif action == 11:
+                        c = max((c-1), min_c)
+                    elif action == 12:
+                        c = min((c + 1), max_c)
+
+                    if (col_sample > max_col_sample or col_sample < min_col_sample
+                            or row_sample > max_row_sample or row_sample < min_row_sample
+                            or g > max_g or g < min_g
+                            or eta > max_eta or eta < min_eta
+                            or d > max_d or d < min_d
+                            or c > max_c or c < min_c):
+
+                        break
+
+                    else:
+                            
+                            # take action
+                            model_RL = XGBClassifier(base_score=0.5
                                                                 , colsample_by_tree = col_sample
                                                                 , subsample = row_sample
                                                                 , gamma = g
@@ -150,38 +152,35 @@ def qLearning(initial_state, num_episodes, discount_factor = 0.9, alpha = 0.6, e
                                                                 , seed=42
                                                                 , silent=True)
 
-                    model_RL.fit(X_train, Y_train)
+                    
+                            model_RL.fit(X_train, Y_train)
             
-                    dev_pred = model_RL.predict(X_dev)
-                    dev_accuracy = accuracy_score(Y_dev, dev_pred)
+                            dev_pred = model_RL.predict(X_dev)
+                   
+                            dev_accuracy = accuracy_score(Y_dev, dev_pred)
 
-                    #calculate reward corresponding to the action
-                    reward = dev_accuracy - 0.9578 #dev accuracy of tuned model - dev accuracy of baseline model
+                            #calculate reward corresponding to the action
+                            reward = dev_accuracy - 0.9578 #dev accuracy of tuned model - dev accuracy of baseline model
 
-                    #experiment new_reward - old_reward
+                            #experiment new_reward - old_reward
 
-                    #record new state
-                    next_state = (col_sample, row_sample, g, eta, d, c)
+                            #record new state
+                            next_state = (col_sample, row_sample, g, eta, d, c)
 
-                    # Update statistics
-                    stats.episode_rewards[ith_episode] += reward
-                    stats.episode_lengths[ith_episode] = t
+                            # Update statistics
+                            stats.episode_rewards[ith_episode] += reward
+                            stats.episode_lengths[ith_episode] = t
                     
-                    # TD Update
-                    best_next_action = np.argmax(Q[next_state])	
-                    td_target = reward + discount_factor * Q[next_state][best_next_action]
-                    td_delta = td_target - Q[state_tuple][action]
-                    Q[state_tuple][action] += alpha * td_delta
-
-                    # done is True if episode terminated
-
+                            # TD Update
+                            best_next_action = np.argmax(Q[next_state])	
+                            td_target = reward + discount_factor * Q[next_state][best_next_action]
                     
-                    if reward > 0.01:
-                            break
+                            td_delta = td_target - Q[state_tuple][action]
+                            Q[state_tuple][action] += alpha * td_delta
+
+                            state_tuple = next_state
                             
-                    state = next_state
-                
                 return Q, stats
 
-
-Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.9, alpha = 0.6, epsilon = 0.1)
+#Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.9, alpha = 0.6, epsilon = 0.1)
+Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.95, alpha = 0.9, epsilon = 0.2)
