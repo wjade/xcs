@@ -87,7 +87,7 @@ def qLearning(initial_state, num_episodes, discount_factor, alpha, epsilon):
                             state_tuple = initial_state
 
                     #for t in itertools.count():
-                    for t in range(0, 5):
+                    for t in range(0, 5): #you'll need to modify the value here. 5 is only for test run
                             print(t)
 
                             col_sample, row_sample, g, eta, d, c = state_tuple
@@ -184,6 +184,6 @@ def qLearning(initial_state, num_episodes, discount_factor, alpha, epsilon):
                                     return Q, stats
 
 #Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.9, alpha = 0.6, epsilon = 0.1)
-Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.95, alpha = 0.9, epsilon = 0.2)
+Q, stats = qLearning((1, 0.9, 0, 0.3, 6, 1), 10, discount_factor = 0.95, alpha = 0.9, epsilon = 0.2) #episodes set to 10 for test run, modify it for better result
 
 #the winning parameter set is (0.5, 0.8, 0, 0.3, 6, 1), with dev accuracy being 0.9587
