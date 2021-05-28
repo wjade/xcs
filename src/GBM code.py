@@ -106,6 +106,8 @@ print(grid_search)
 #returns grid_search with the max
 max_value = grid_search[grid_search[:,7]==grid_search[:,7].max()]
 
+print(max_value)
+
 #max value1
 #[0.7, 0.5, 5, 0.3, 6, 5, 0.9622, 0.9585]
 #[0.7, 1, 0, 0.3, 6, 5, 0.9634, 0.9585]
