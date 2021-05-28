@@ -1,7 +1,6 @@
 #XCS229II project
 
 import os
-os.chdir("/Users/yejiang/Desktop/Stanford ML class/project/code")
 
 import numpy as np
 import pandas as pd
@@ -18,7 +17,7 @@ from scipy.spatial.distance import cdist
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 #EDA
-mydata = pd.read_csv (r'/Users/yejiang/Desktop/Stanford ML class/project/data/assembled-workers-compensation-claims-beginning-2000.csv')
+mydata = pd.read_csv (r'~/xcs/data/assembled-workers-compensation-claims-beginning-2000.csv')
 col_names = mydata.columns.values.tolist()
 
 mydata_backup = mydata
