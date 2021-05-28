@@ -91,8 +91,11 @@ for col_sample in (0.7, 1):#baseline is 1
 
                         dev_pred = model_grid.predict(X_dev)
                         dev_accuracy = accuracy_score(Y_dev, dev_pred)
+                        
+                        test_pred = model_grid.predict(X_test)
+                        test_accuracy = accuracy_score(Y_test, dev_test)
 
-                        grid_search.append([col_sample, row_sample, g, eta, d, c, train_accuracy, dev_accuracy])
+                        grid_search.append([col_sample, row_sample, g, eta, d, c, train_accuracy, dev_accuracy, test_accuracy])
 
                         print(i)
 
